@@ -1,0 +1,41 @@
+# latest.json, rebuilt from the published releases whenever one is published (or by hand: Actions → latest.json → Run workflow).
+# The apps read it to check for updates. Releases are made by SSH Panel's own repository; this only indexes them
+name: latest.json
+
+on:
+  release:
+    types: [published, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: latest-json
+  cancel-in-progress: false
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rebuild latest.json
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/update-latest.mjs latest.json
+      - name: Commit it when it changed
+        run: |
+          # "updated" changes on every run: compare the rest
+          if git cat-file -e HEAD:latest.json 2>/dev/null && [ "$(git show HEAD:latest.json | jq -S 'del(.updated)')" = "$(jq -S 'del(.updated)' latest.json)" ]; then
+            echo "No change"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add latest.json
+          git commit -m "latest.json: ${{ github.event.release.tag_name || 'rebuilt' }}"
+          git push
