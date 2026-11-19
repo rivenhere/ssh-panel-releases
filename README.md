@@ -22,6 +22,11 @@ Each system's app has its own version, so the newest release for your system may
 The apps aren't code-signed yet: Windows (SmartScreen) and macOS (Gatekeeper) warn the first time. On macOS, right-click the app and
 choose *Open*.
 
+## The Server Helper (sspd)
+
+Releases tagged `sspd-vX.Y.Z` hold the Server Helper's program for every architecture (`sspd-linux-<arch>`, with `SHA256SUMS`).
+You don't need to download them: SSH Panel fetches the right one when you install the Helper on a server, and checks its SHA-256.
+
 ## latest.json
 
 [`latest.json`](latest.json) lists the newest version of each package (with its release, file, size and SHA-256). The apps read it to
